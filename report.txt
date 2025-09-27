@@ -1,0 +1,585 @@
+Rapport de Projet
+Data Warehouse pour l’evaluation
+´
+des LLMs
+Filiere : Business Intelligence & Analytics `
+R´ealis´e par :
+Benyakhlef Rachid
+Amine Ez-zahrouy
+Encadr´e par :
+Mme. Benhiba
+Ann´ee Universitaire : 2024/2025
+Table des figures
+1 Matrice des d´ependances . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+2 sch´ema du mod`ele en ´etoile . . . . . . . . . . . . . . . . . . . . . . . . . 11
+3 Affichage des donn´ees import´ees dans la table source de la base LLM Staging
+sous SQL Server . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+4 Gestion des connecteurs de source et de destination dans SSIS . . . . . . 14
+5 Vue d’ensemble Control Flow ETL SSIS . . . . . . . . . . . . . . . . . . 15
+6 Configuration de la destination OLE DB pour la table Dim Modele . . . . 16
+7 Mapping des colonnes entre la source et la destination pour la table Dim Modele 17
+8 Flux de chargement de la table de faits Fact ResultatsBenchmark avec
+gestion des Lookups . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+9 Flux de chargement de la table de faits Fact ModeleAggregate avec Lookups 18
+10 Blocage lors du choix de la variable de date dans l’assistant SCD2 de SSIS 19
+11 Structure du cube SSAS – Relations entre tables de faits et dimensions . 20
+12 Association des dimensions aux groupes de mesures dans le cube SSAS . 21
+13 Exploration et interrogation du cube OLAP via SQL Server Management
+Studio (SSMS) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+14 chargement du cube via Power BI . . . . . . . . . . . . . . . . . . . . . . 22
+15 Suite chargement du cube via . . . . . . . . . . . . . . . . . . . . . . . . 22
+16 Exemple de dashboard Power BI pour l’analyse des mod`eles de langage . 23
+2
+Table des mati`eres
+1 Introduction g´en´erale 4
+2 Contexte g´en´eral du projet 5
+2.1 Pr´esentation du projet . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+2.1.1 Probl´ematique . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+2.1.2 Objectifs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+2.2 M´ethodologie de travail . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+2.2.1 Approche adopt´ee . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+2.2.2 Planification et r´epartition des tˆaches . . . . . . . . . . . . . . . . 6
+3 Analyse et conception 7
+3.1 Analyse des besoins . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.1.1 Besoins m´etiers . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+3.1.2 Utilisateurs cibles et cas d’usage . . . . . . . . . . . . . . . . . . . 7
+3.1.3 Dimensions d’analyse pertinentes . . . . . . . . . . . . . . . . . . 8
+3.2 Mod´elisation du Data Warehouse . . . . . . . . . . . . . . . . . . . . . . 8
+3.2.1 Identification des faits et des dimensions . . . . . . . . . . . . . . 8
+3.2.2 Conception de la matrice de granularit´e . . . . . . . . . . . . . . . 9
+3.2.3 Mod`ele en ´etoile et dictionnaire des donn´ees . . . . . . . . . . . . 10
+4 R´ealisation 13
+4.1 Mise en place du syst`eme source relationnel . . . . . . . . . . . . . . . . 13
+4.1.1 Pr´eparation et importation des fichiers CSV . . . . . . . . . . . . 13
+4.1.2 Cr´eation de la base source dans SQL Server . . . . . . . . . . . . 13
+4.2 Impl´ementation de l’ETL avec SSIS . . . . . . . . . . . . . . . . . . . . . 14
+4.2.1 Connection Manager . . . . . . . . . . . . . . . . . . . . . . . . . 14
+4.2.2 Vue d’ensemble du Control Flow . . . . . . . . . . . . . . . . . . 14
+4.2.3 D´etail des Data Flows de chargement . . . . . . . . . . . . . . . . 15
+4.2.4 Probl`eme rencontr´e lors de la configuration du SCD2 dans SSIS . 19
+4.3 Analyse et visualisation des donn´ees . . . . . . . . . . . . . . . . . . . . . 19
+4.3.1 Structure et exploration du cube SSAS . . . . . . . . . . . . . . . 19
+4.3.2 Utilisation des dimensions dans le cube SSAS . . . . . . . . . . . 20
+4.3.3 Exploration et interrogation du cube via SSMS . . . . . . . . . . 21
+5 Visualisation des donn´ees avec Power BI et SSAS 22
+5.1 Connexion de Power BI au cube SSAS . . . . . . . . . . . . . . . . . . . 22
+5.2 Exploration et cr´eation de rapports dynamiques . . . . . . . . . . . . . . 22
+5.3 Exemples de visualisations r´ealis´ees . . . . . . . . . . . . . . . . . . . . . 22
+5.3.1 Pr´esentation et explication des KPI . . . . . . . . . . . . . . . . . 23
+5.3.2 Analyse et interpr´etation des KPI . . . . . . . . . . . . . . . . . . 23
+5.3.3 Pertinence des KPI pour la prise de d´ecision . . . . . . . . . . . . 24
+6 Conclusion g´en´erale 24
+Annexes 24
+R´ef´erences bibliographiques 25
+3
+1 Introduction g´en´erale
+L’av`enement des mod`eles de langage de grande taille (LLMs) a transform´e le domaine
+de l’intelligence artificielle, en particulier dans les tˆaches de traitement du langage naturel. Face `a l’acc´el´eration du d´eveloppement de ces mod`eles et `a la diversit´e croissante
+des benchmarks, la n´ecessit´e d’une ´evaluation rigoureuse, centralis´ee et syst´ematique
+s’impose. Dans ce contexte, le consortium de recherche EvalLLM a ´et´e mandat´e pour
+centraliser, structurer et analyser les r´esultats d’´evaluation des LLMs open source.
+Les r´esultats d’´evaluation, issus de benchmarks vari´es (raisonnement, calcul, rappel
+factuel, compr´ehension linguistique, etc.), sont actuellement diss´emin´es dans des fichiers
+CSV, cartes de mod`eles ou articles scientifiques. Cette dispersion entraˆıne une difficult´e de
+comparaison, un manque de tra¸cabilit´e, ainsi qu’une r´ep´etition des efforts lors de chaque
+nouvelle analyse. EvalLLM vise `a rem´edier `a ces limites en mettant en place un Data
+Warehouse d´edi´e `a la consolidation, la structuration et l’analyse multidimensionnelle des
+performances des LLMs.
+L’objectif de ce projet est donc de concevoir et d’impl´ementer une solution de Business
+Intelligence permettant de :
+— Centraliser les r´esultats d’´evaluation dans un entrepˆot de donn´ees robuste et extensible ;
+— Permettre l’analyse comparative des mod`eles selon diff´erents axes (benchmark, famille, g´en´eration, type d’´evaluation, etc.) ;
+— Visualiser dynamiquement les indicateurs cl´es de performance (KPI) via un cube
+OLAP et faire des visualisations ;
+— Standardiser et automatiser le processus de collecte, transformation et restitution
+des donn´ees.
+La port´ee du projet couvre la cr´eation des sch´emas relationnels et multidimensionnels,
+le d´eveloppement des flux ETL via SSIS, la gestion des dimensions `a ´evolution lente
+(SCD), ainsi que la cr´eation de rapports et dashboards `a l’aide de SSAS et d’outils de
+visualisation adapt´es. L’ensemble de la solution repose sur la plateforme Microsoft SQL
+Server ET PowerBI pour la visualisation .
+4
+2 Contexte g´en´eral du projet
+2.1 Pr´esentation du projet
+2.1.1 Probl´ematique
+L’´evaluation des mod`eles de langage de grande taille (LLMs) est devenue un enjeu central pour la communaut´e scientifique et l’industrie, en raison de la diversit´e des benchmarks, du rythme soutenu des nouvelles sorties de mod`eles et de la complexit´e croissante
+des architectures. Cependant, la collecte et la centralisation des r´esultats d’´evaluation des
+LLMs posent de nombreux d´efis. Actuellement, les r´esultats sont dispers´es dans des fichiers CSV, des documents techniques, des cartes de mod`eles ou des plateformes en ligne,
+rendant leur exploitation complexe et peu fiable. Cette dispersion engendre des difficult´es
+majeures :
+— Manque de coh´erence et de standardisation des donn´ees d’´evaluation ;
+— Risques d’erreurs lors des compilations manuelles et de comparaisons entre mod`eles ;
+— Absence de tra¸cabilit´e sur l’origine et les conditions des ´evaluations ;
+— Reproduction fastidieuse d’analyses d´ej`a r´ealis´ees, faute de centralisation.
+Ces obstacles limitent la capacit´e des chercheurs et analystes `a comparer efficacement
+les performances des mod`eles, `a suivre leur ´evolution dans le temps ou `a identifier les
+compromis entre performance, taille et impact environnemental.
+2.1.2 Objectifs
+Les objectifs principaux de ce projet sont :
+— Centraliser et structurer les r´esultats d’´evaluation des LLMs dans un Data Warehouse d´edi´e ;
+— Permettre l’analyse comparative et multidimensionnelle des performances des mod`eles
+selon divers axes (benchmark, g´en´eration, type d’´evaluation, taille, etc.) ;
+— Automatiser le processus d’extraction, de transformation et de chargement (ETL)
+des donn´ees depuis les sources brutes vers le Data Warehouse ;
+— Assurer la tra¸cabilit´e, la standardisation et la reproductibilit´e des analyses ;
+— Faciliter l’exploration et la r´ecup´eration des donn´ees `a travers la mise en place de
+cubes analytiques.
+5
+2.2 M´ethodologie de travail
+2.2.1 Approche adopt´ee
+Pour mener `a bien ce projet, une approche de travail collaborative et it´erative a ´et´e privil´egi´ee. Inspir´es par la philosophie Agile, nous avons avanc´e par ´etapes successives : analyse des besoins, mod´elisation, impl´ementation technique puis validation. Chaque phase
+a donn´e lieu `a des ´echanges fr´equents et `a des retours r´eguliers, favorisant l’am´elioration
+continue du projet. Cette m´ethode a permis de rester flexibles, de nous adapter rapidement aux contraintes rencontr´ees et d’optimiser la qualit´e de la solution finale.
+2.2.2 Planification et r´epartition des tˆaches
+Le projet a ´et´e r´ealis´e en binˆome, avec une r´epartition souple des tˆaches. Certaines
+´etapes, telles que l’analyse fonctionnelle ou la mod´elisation du Data Warehouse, ont ´et´e
+men´ees conjointement afin de croiser nos points de vue et d’assurer la coh´erence des choix.
+Pour d’autres phases plus techniques (d´eveloppement de l’ETL, cr´eation des tables, etc.),
+nous avons partag´e les tˆaches en fonction des comp´etences et des disponibilit´es, tout
+en maintenant un suivi r´egulier et des sessions de revue en commun. Ce mode de fonctionnement en binˆome, associ´e `a des retours constants, a permis d’aborder efficacement
+l’ensemble des volets du projet et de maximiser la compl´ementarit´e au sein de l’´equipe.
+6
+3 Analyse et conception
+3.1 Analyse des besoins
+3.1.1 Besoins m´etiers
+Le projet EvalLLM r´epond `a un besoin m´etier central : permettre une analyse fiable,
+efficace et ´evolutive des performances des mod`eles de langage de grande taille (LLMs)
+´evalu´es sur une grande diversit´e de benchmarks. Son objectif m´etier principal est de
+faciliter, pour les chercheurs, data scientists, d´ecideurs industriels et acteurs de la veille
+technologique, l’analyse comparative, le suivi dans le temps et la tra¸cabilit´e des r´esultats
+d’´evaluation des LLMs.
+Plus concr`etement, les besoins `a satisfaire sont :
+— Centraliser les r´esultats d’´evaluation, actuellement dispers´es dans des fichiers CSV, ;
+— Standardiser le processus de benchmarking pour garantir des comparaisons ´equitables
+et reproductibles entre les mod`eles ;
+— Analyser les performances selon plusieurs axes : benchmark, famille de mod`eles,
+nombre de param`etres, type d’´evaluation, date de publication, etc. ;
+— Suivre l’´evolution des performances au fil du temps et `a travers les diff´erentes versions de mod`eles ;
+— Evaluer les compromis entre performance, taille du mod`ele, coˆut ´energ´etique (em- ´
+preinte carbone), etc. ;
+— Identifier rapidement les mod`eles les plus performants ou les plus efficients selon
+des crit`eres m´etiers sp´ecifiques.
+Plusieurs enjeux strat´egiques accompagnent ces besoins, notamment :
+— Reproductibilit´e : garantir que les r´esultats d’´evaluation puissent ˆetre v´erifi´es,
+reproduits et compar´es dans des conditions ´equitables ;
+— Tra¸cabilit´e : conserver un historique complet des performances et m´etadonn´ees
+pour chaque mod`ele, incluant les versions ant´erieures (notamment via la gestion
+des dimensions `a ´evolution lente) ;
+— Transparence : fournir une base de donn´ees fiable et accessible `a la communaut´e
+scientifique et aux parties prenantes ;
+— Support `a la d´ecision : offrir des outils analytiques pertinents pour guider les
+choix de mod`eles dans des secteurs `a fort enjeu (sant´e, finance, ´education, etc.).
+3.1.2 Utilisateurs cibles et cas d’usage
+Les utilisateurs cibles du projet EvalLLM sont principalement :
+— Chercheurs et universitaires, sp´ecialis´es en intelligence artificielle, traitement
+automatique du langage naturel (TALN) et apprentissage automatique, qui souhaitent comparer objectivement les performances de diff´erents mod`eles de langage.
+— Data scientists et ing´enieurs IA, impliqu´es dans la s´election, l’int´egration ou
+l’optimisation de LLMs dans des applications concr`etes.
+— D´ecideurs industriels, responsables de l’´evaluation et du choix des mod`eles pour
+des d´eploiements dans des secteurs critiques tels que la sant´e, la finance ou l’´education.
+7
+— Communaut´e open source et acteurs de la veille technologique, int´eress´es
+par la transparence, la reproductibilit´e et la veille sur l’´etat de l’art des mod`eles de
+langage.
+3.1.3 Dimensions d’analyse pertinentes
+Dans le cadre de l’analyse des performances des mod`eles de langage, plusieurs dimensions d’analyse se r´ev`elent particuli`erement pertinentes et structurantes pour r´epondre
+aux besoins m´etiers identifi´es. Bien que la mod´elisation d´etaill´ee soit abord´ee ult´erieurement,
+il est possible de d´egager d`es cette phase les principaux axes d’analyse qui guideront la
+conception du Data Warehouse.
+Les dimensions essentielles sont les suivantes :
+— Mod`ele : informations permettant d’identifier et de caract´eriser chaque mod`ele de
+langage (nom, famille, g´en´eration, taille, architecture, empreinte ´ecologique, etc.).
+— Benchmark : description des benchmarks ou jeux de donn´ees sur lesquels les
+mod`eles sont ´evalu´es (nom, cat´egorie, type d’´evaluation, etc.).
+— Caract´eristiques techniques : ensemble d’attributs d´ecrivant les propri´et´es ou
+fonctionnalit´es des mod`eles (pr´esence d’un template chat, compatibilit´e avec certains usages, fournisseur, etc.).
+— M´etadonn´ees : informations compl´ementaires sur les mod`eles et leurs ´evaluations
+(licence, date de soumission, date de publication, provenance des r´esultats, etc.).
+— Date : dimension temporelle permettant de situer chaque ´evaluation ou agr´egat
+dans le temps (jour, mois, ann´ee, etc.), essentielle pour le suivi longitudinal.
+Ces dimensions permettront d’effectuer des analyses crois´ees, de comparer les mod`eles
+selon de multiples crit`eres (performance, coˆut, ´evolution temporelle, etc.) et de r´epondre
+aux besoins de tra¸cabilit´e, de standardisation et de support `a la d´ecision ´evoqu´es pr´ec´edemment.
+(La mod´elisation d´etaill´ee des dimensions et des faits est pr´esent´ee dans la section
+suivante.)
+3.2 Mod´elisation du Data Warehouse
+3.2.1 Identification des faits et des dimensions
+L’´etape pr´ealable `a la conception de la matrice de granularit´e consiste `a recenser les
+principales informations `a analyser, en distinguant :
+— Les mesures et indicateurs cl´es de performance (KPIs) potentiels associ´es aux faits
+observ´es ;
+— Les dimensions analytiques qui constitueront les axes d’exploration et de comparaison des donn´ees.
+KPIs et mesures identifi´es (faits potentiels) :
+— benchmark value : Score brut obtenu par un mod`ele sur un benchmark donn´e.
+— benchmark normalized score : Score standardis´e pour faciliter les comparaisons
+inter-benchmarks.
+— model average score : Moyenne des performances toutes tˆaches confondues pour
+un mˆeme mod`ele.
+8
+— metadata hub hearts : Mesure de la popularit´e d’un mod`ele (ex. : nombre de
+”likes” sur Hugging Face).
+— metadata co2 cost : Coˆut environnemental estim´e de l’entraˆınement d’un mod`ele.
+— metadata params billions : Taille du mod`ele (nombre de param`etres en milliards).
+Dimensions analytiques (axes d’analyse pressentis) :
+— Mod`ele (Dim Modele) : Suivi de l’´evolution et des caract´eristiques de chaque
+mod`ele (nom, g´en´eration, type, architecture, etc.).
+— Benchmark (Dim Benchmark) : Analyse des r´esultats selon la tˆache d’´evaluation.
+— Date (Dim Date) : Analyse temporelle (date de soumission, de publication, etc.).
+— Caract´eristiques techniques (Dim Caracteristiques) : Exploration des attributs techniques sp´ecifiques (pr´esence de chat template, fusionn´e, signal´e, fournisseur, etc.).
+— M´etadonn´ees (Dim Metadonnees) : Informations contextuelles comme la licence,
+la g´en´eration, le fournisseur, etc.
+Ces faits et dimensions serviront de base `a la construction de la matrice de granularit´e,
+qui pr´ecisera par la suite la structure finale du Data Warehouse (nombre de tables de
+faits, modalit´es d’analyse, etc.).
+La d´efinition pr´ecise des tables de faits et des niveaux de granularit´e sera r´ealis´ee `a
+l’´etape suivante, lors de la conception de la matrice de granularit´e.
+3.2.2 Conception de la matrice de granularit´e
+La matrice de granularit´e permet de d´eterminer le niveau de d´etail (ou ≪ grain ≫) des
+diff´erentes tables de faits du Data Warehouse, en croisant les dimensions retenues avec
+les mesures `a analyser.
+Matrice de granularit´e propos´ee :
+Figure 1 – Matrice des d´ependances
+Interpr´etation :
+9
+— La table Fact ResultatsBenchmark pr´esente une granularit´e fine, chaque fait correspondant `a la performance d’un mod`ele donn´e sur un benchmark pr´ecis, `a une
+date donn´ee, selon certaines caract´eristiques et m´etadonn´ees. Elle permet des analyses d´etaill´ees et des comparaisons pr´ecises entre mod`eles, benchmarks ou dans le
+temps.
+— La table Fact ModeleAggregate propose une granularit´e plus agr´eg´ee : les mesures
+sont regroup´ees par mod`ele, `a une date donn´ee, et ´eventuellement selon certains
+attributs (caract´eristiques, m´etadonn´ees), mais sans distinction du benchmark. Ce
+niveau de granularit´e est adapt´e `a la production de KPIs globaux, de synth`eses ou
+de comparaisons intermod`eles.
+Ce choix de granularit´e garantit `a la fois la pr´ecision des analyses d´etaill´ees et la
+disponibilit´e de vues synth´etiques pour le reporting ou la prise de d´ecision.
+3.2.3 Mod`ele en ´etoile et dictionnaire des donn´ees
+Le sch´ema ci-dessous pr´esente le mod`ele en ´etoile retenu pour le Data Warehouse
+du projet EvalLLM, mettant en relation les deux tables de faits principales avec leurs
+dimensions respectives. Ce mod`ele facilite la navigation et l’analyse multidimensionnelle,
+tout en assurant la simplicit´e et la performance des requˆetes analytiques.
+10
+Figure 2 – sch´ema du mod`ele en ´etoile
+Le mod`ele en ´etoile se compose de deux tables de faits (Fact ResultatsBenchmark et
+Fact ModeleAggregate) en lien avec cinq dimensions analytiques (Dim Modele, Dim Benchmark,
+Dim Date, Dim Caracteristiques, Dim Metadonnees). Ce d´ecoupage permet de r´epondre
+`a la fois aux besoins d’analyse fine (niveau benchmark) et d’agr´egation (niveau mod`ele).
+Dictionnaire des donn´ees Le tableau suivant d´ecrit les principales tables et attributs
+du sch´ema, ainsi que leur signification m´etier.
+— Fact ResultatsBenchmark : Table des r´esultats d´etaill´es des mod`eles sur chaque
+benchmark.
+— ResultatBenchmark SK : Cl´e primaire technique
+— Modele SK, Benchmark SK, Date SK, Caracteristiques SK, Metadonnees SK :
+Cl´es ´etrang`eres vers les dimensions
+— benchmark value : Score brut obtenu
+— benchmark normalized score : Score normalis´e
+— nom benchmark : Nom du benchmark (pour analyses compl´ementaires)
+11
+— Fact ModeleAggregate : Table des mesures agr´eg´ees par mod`ele.
+— ModeleAggregate SK : Cl´e primaire technique
+— Modele SK, Date SK, Caracteristiques SK, Metadonnees SK : Cl´es ´etrang`eres
+vers les dimensions
+— score moyen modele : Score moyen tous benchmarks confondus
+— nb hearts hub : Popularit´e (nombre de ”likes” sur Hugging Face)
+— cout co2 : Coˆut ´energ´etique estim´e
+— nb parametres milliards : Taille du mod`ele (nombre de param`etres en milliards)
+— Dim Modele : Dimension descriptive des mod`eles de langage.
+— Modele SK : Cl´e primaire
+— identifiant, nom modele, empreinte modele, precision modele, type modele,
+type poids modele, architecture modele, modele de base, generation :
+Attributs de description
+— ValidFrom, ValidTo, IsCurrent : Suivi d’historique (SCD)
+— Dim Benchmark : Dimension des benchmarks.
+— Benchmark SK : Cl´e primaire
+— nom benchmark : Nom du benchmark
+— categorie benchmark : Cat´egorie (raisonnement, compr´ehension, etc.)
+— Dim Caracteristiques : Dimension technique des mod`eles.
+— Caracteristiques SK : Cl´e primaire
+— modele possede template chat, caracteristique non disponible,
+— caracteristique est fusionnee, caracteristique est mode,
+— caracteristique est signalee, caracteristique est fournisseur : Attributs bool´eens de propri´et´es techniques
+— ValidFrom, ValidTo, IsCurrent : Suivi d’historique
+— Dim Metadonnees : M´etadonn´ees contextuelles.
+— Metadonnees SK : Cl´e primaire
+— licence hub : Licence d’utilisation
+— date televersement, date soumission : Informations temporelles
+— ValidFrom, ValidTo, IsCurrent : Suivi d’historique
+— Dim Date : Dimension temporelle standard.
+— Date SK : Cl´e primaire
+— FullDate, Annee, Mois, Jour, Trimestre, Semaine : D´ecoupage temporel analytique
+Ce dictionnaire des donn´ees garantit la compr´ehension s´emantique des informations stock´ees
+et facilite la communication entre les parties prenantes du projet (analystes, d´eveloppeurs,
+utilisateurs finaux).
+12
+4 R´ealisation
+4.1 Mise en place du syst`eme source relationnel
+4.1.1 Pr´eparation et importation des fichiers CSV
+Avant toute int´egration dans le syst`eme d´ecisionnel, une ´etape primordiale de pr´eparation
+et de nettoyage des donn´ees a ´et´e r´ealis´ee `a l’aide de la biblioth`eque pandas en Python.
+Le but ´etait de garantir la qualit´e, la coh´erence et la compatibilit´e des donn´ees avec les
+exigences d’un data warehouse.
+Les principales transformations effectu´ees sont les suivantes :
+— Changement de format : Le fichier source, initialement au format CSV, a ´et´e
+converti au format Excel (XLSX), offrant une meilleure structuration et une visualisation facilit´ee.
+— Correction des types de donn´ees :
+— Conversion automatique des valeurs num´eriques (scores, coˆuts, etc.) en types
+num´eriques.
+— Conversion des champs bool´eens (TRUE/FALSE) en v´eritables bool´eens.
+— Transformation des dates au format datetime.
+— Nettoyage des valeurs textuelles : Suppression des espaces superflus, des guillemets ou caract`eres ind´esirables pour assurer la propret´e des chaˆınes de caract`eres.
+— Gestion avanc´ee des valeurs manquantes :
+— Remplacement des identifiants ou cat´egories manquantes par Unknown ou la
+modalit´e la plus fr´equente.
+— Imputation des valeurs num´eriques manquantes par la m´ediane de la colonne.
+— Remplacement des dates manquantes par 1970-01-01.
+— Traitement de la structure et de la qualit´e des donn´ees :
+— Suppression des lignes comportant plus de 50% de valeurs manquantes.
+— Standardisation et normalisation des donn´ees pour assurer leur coh´erence.
+— Compatibilit´e avec un data warehouse : Le jeu de donn´ees final est propre,
+typ´e, coh´erent et prˆet `a ˆetre charg´e dans un entrepˆot de donn´ees.
+L’ensemble de ces ´etapes de pr´eparation est essentiel pour garantir que les analyses
+futures reposent sur des donn´ees fiables et exploitables.
+4.1.2 Cr´eation de la base source dans SQL Server
+Apr`es l’´etape de nettoyage, le fichier Excel obtenu a ´et´e import´e dans une base de
+donn´ees relationnelle nomm´ee LLM Staging sous SQL Server. Pour cette op´eration :
+— Les types de colonnes ont ´et´e minutieusement v´erifi´es et adapt´es afin de correspondre aux types de donn´ees pr´esents dans le fichier source nettoy´e.
+— Le chargement a ´et´e effectu´e `a l’aide de l’assistant d’importation Import Flat File,
+permettant d’int´egrer directement les donn´ees dans une table nomm´ee source.
+La table source constitue ainsi une zone de transit (staging area) pr´ealable aux traitements d’int´egration et de transformation vers le Data Warehouse final.
+Figure 3 – Affichage des donn´ees import´ees dans la table source de la base LLM Staging
+sous SQL Server
+13
+4.2 Impl´ementation de l’ETL avec SSIS
+4.2.1 Connection Manager
+Figure 4 – Gestion des connecteurs de source et de destination dans SSIS
+La premi`ere ´etape dans la configuration d’un projet SSIS consiste `a d´efinir les Connection Managers, qui servent de passerelles entre les sources de donn´ees et les destinations.
+Dans notre cas :
+— Deux connecteurs ont ´et´e cr´e´es :
+— localhost.LLM Staging : connecteur vers la base de donn´ees source, contenant les donn´ees brutes issues de la zone de staging.
+— localhost.LLMs DW : connecteur vers la base de donn´ees de destination,
+c’est-`a-dire le Data Warehouse cible.
+— Ces connecteurs permettent `a chaque composant SSIS (Source, Destination, Lookup, etc.) d’acc´eder aux tables concern´ees, selon qu’il s’agisse d’extraire ou de charger des donn´ees.
+— Cette ´etape est essentielle car elle garantit la communication entre l’environnement
+SSIS et les bases de donn´ees SQL Server utilis´ees tout au long du processus ETL.
+4.2.2 Vue d’ensemble du Control Flow
+Le sch´ema ci-dessous illustre le Control Flow principal mis en place dans SSIS
+pour l’alimentation du Data Warehouse EvalLLM. Chaque tˆache du flux correspond au
+chargement d’une table de dimension ou de fait, conform´ement au mod`ele en ´etoile d´efini
+pr´ec´edemment.
+14
+Figure 5 – Vue d’ensemble Control Flow ETL SSIS
+Le flux d’ETL comprend les ´etapes suivantes :
+— Mod`ele, Caract´eristiques, M´etadonn´ees, Date, Benchmark :
+Ces tˆaches Data Flow permettent le chargement des dimensions respectives (Dim Modele,
+Dim Caracteristiques, Dim Metadonnees, Dim Date, Dim Benchmark) `a partir de la
+table de staging.
+— LoadFactR´esultatBenchmark :
+Cette ´etape int`egre les faits d´etaill´es de performance (par benchmark) dans la table
+de faits Fact ResultatsBenchmark en r´ealisant les jointures n´ecessaires avec les dimensions charg´ees pr´ec´edemment.
+— Fact ModeleAggregate :
+Enfin, cette tˆache charge les mesures agr´eg´ees par mod`ele dans la table de faits
+d´edi´ee, en s’appuyant ´egalement sur les dimensions et en r´ealisant les agr´egations
+n´ecessaires (scores moyens, nombre de param`etres, etc.).
+L’architecture du flux garantit que chaque dimension est peupl´ee avant le chargement
+des tables de faits, assurant ainsi le respect des cl´es ´etrang`eres et l’int´egrit´e r´ef´erentielle
+du Data Warehouse. Ce s´equencement permet un processus ETL robuste, automatis´e
+et parfaitement adapt´e `a la structure en ´etoile du projet EvalLLM.
+4.2.3 D´etail des Data Flows de chargement
+Dans cette partie, chaque flux de donn´ees (Data Flow) est d´etaill´e individuellement.
+Pour chaque dimension ou table de faits, un Data Flow sp´ecifique a ´et´e con¸cu, permettant le mapping, la transformation et le chargement ad´equat des donn´ees `a partir
+de la zone de staging vers le Data Warehouse.
+Nous allons d´etailler en particulier le Data Flow de la dimension Mod`ele, car la
+logique de chargement est similaire pour les autres dimensions (Caract´eristiques,
+M´etadonn´ees, Date, Benchmark).
+15
+Cette pr´esentation permettra d’illustrer les diff´erents param`etres, mappings et ´etapes
+de transformation mis en œuvre pour une dimension type.
+Ensuite, nous nous int´eresserons aux Data Flows des deux tables de faits (Fact ResultatsBenchmarket Fact ModeleAggregate), en mettant l’accent sur la gestion des lookups n´ecessaires
+pour relier correctement les faits `a leurs dimensions respectives.
+— Ce composant configure la destination OLE DB dans SSIS pour le chargement
+des donn´ees transform´ees dans la table Dim Modele du Data Warehouse LLMs DW.
+— Il permet de sp´ecifier la connexion `a la base de donn´ees cible, le mode d’acc`es
+(≪ Table or view ≫) et le nom de la table de destination.
+— Cette ´etape assure que les donn´ees nettoy´ees et pr´epar´ees par le Data Flow sont
+ins´er´ees correctement dans la table de dimension.
+Figure 6 – Configuration de la destination OLE DB pour la table Dim Modele
+— Cet ´ecran correspond `a l’onglet ≪ Mappings ≫ de la configuration OLE DB
+Destination.
+— Il permet de d´efinir la correspondance entre les colonnes issues du flux de donn´ees
+(Input Columns) et celles de la table de destination (Destination Columns).
+16
+— Chaque champ source, comme identifiant, nom modele, ou precision modele,
+est ainsi correctement associ´e `a sa colonne cible.
+— Ce mapping garantit la coh´erence et l’int´egrit´e lors du chargement des donn´ees
+dans la dimension.
+Figure 7 – Mapping des colonnes entre la source et la destination pour la table
+Dim Modele
+— Ce sch´ema pr´esente le Data Flow SSIS pour le chargement de la table de faits
+Fact ResultatsBenchmark.
+— Le flux commence par une source OLE DB qui extrait les donn´ees depuis la zone
+de staging.
+— Plusieurs composants Lookup r´ecup`erent les cl´es substitutives des dimensions
+(Benchmark, Mod`eles, Date, M´etadonn´ees, Caract´eristiques) via jointures sur
+leurs tables respectives.
+— Chaque cl´e trouv´ee est ajout´ee au flux de donn´ees principal, assurant la bonne
+liaison entre faits et dimensions.
+— Enfin, les donn´ees enrichies sont charg´ees dans la table de faits, garantissant
+int´egrit´e r´ef´erentielle et coh´erence des enregistrements.
+17
+Figure 8 – Flux de chargement de la table de faits Fact ResultatsBenchmark avec
+gestion des Lookups
+— Ce sch´ema illustre le flux de donn´ees SSIS pour le chargement de la table de faits
+Fact ModeleAggregate.
+— Apr`es extraction des donn´ees sources via OLE DB Source, plusieurs composants Lookup sont utilis´es pour r´ecup´erer les identifiants des dimensions Date,
+Caract´eristiques, M´etadonn´ees et Mod`ele.
+— Chaque lookup relie les faits aux cl´es substitutives des dimensions correspondantes, assurant l’int´egration correcte dans la table de faits.
+— Les donn´ees enrichies sont ensuite charg´ees dans la destination OLE DB, finalisant le processus pour cette table.
+Figure 9 – Flux de chargement de la table de faits Fact ModeleAggregate avec Lookups
+Remarque : Le composant SCD2, normalement utilis´e pour la gestion des dimensions
+`a ´evolution lente, ainsi que certains lookups associ´es, n’apparaissent pas sur ce sch´ema
+`a cause d’un bug rencontr´e lors du d´eveloppement. Ce probl`eme sera expliqu´es en
+d´etail dans la section suivante du rapport.
+18
+4.2.4 Probl`eme rencontr´e lors de la configuration du SCD2 dans SSIS
+Lors de la configuration du composant Slowly Changing Dimension (SCD) de type 2
+dans SSIS, nous avons rencontr´e un blocage.Plus pr´ecis´ement, `a l’´etape de s´election de
+la variable permettant de renseigner les dates de validit´e lors du suivi des modifications
+historiques (voir capture ci-dessous), la liste d´eroulante cens´ee afficher etait vide .
+— Nous avons tent´e `a plusieurs reprises de fermer et rouvrir l’assistant.
+— red´emarrer compl`etement l’application SSIS.
+— Finalement afin de pouvoir poursuivre le projet dans les d´elais impartis, nous
+avons d´ecid´e de mettre temporairement de cˆot´e cette ´etape et de continuer la
+r´ealisation en passant au chargement des tables de faits et `a la cr´eation du cube
+d’analyse.
+Figure 10 – Blocage lors du choix de la variable de date dans l’assistant SCD2 de SSIS
+4.3 Analyse et visualisation des donn´ees
+4.3.1 Structure et exploration du cube SSAS
+La figure ci-dessous pr´esente la structure de notre cube SSAS (SQL Server Analysis
+Services), qui a ´et´e con¸cu afin de permettre l’analyse multidimensionnelle des r´esultats
+et des caract´eristiques des mod`eles de langage. Voici quelques ´el´ements cl´es sur ce cube :
+— Deux tables de faits sont d´efinies :
+— Fact ModeleAggregate : regroupe les mesures agr´eg´ees par mod`ele, telles que
+le score moyen, le nombre de param`etres, le coˆut, etc.
+— Fact ResultatsBenchmark : contient les r´esultats d´etaill´es des benchmarks
+pour chaque mod`ele et chaque passage de test.
+— Cinq dimensions sont reli´ees `a ces tables de faits :
+— Dim Modele
+19
+— Dim Caracteristiques
+— Dim Metadonnees
+— Dim Date
+— Dim Benchmark
+— Les relations entre tables de faits et dimensions sont mat´erialis´ees par des cl´es substitutives (SK), assurant l’int´egrit´e r´ef´erentielle et la coh´erence lors de l’exploration
+des donn´ees.
+— Cette structure en ´etoile permet de faciliter la cr´eation d’indicateurs, de rapports et
+de dashboards, et d’effectuer des analyses crois´ees sur diff´erentes dimensions.
+Figure 11 – Structure du cube SSAS – Relations entre tables de faits et dimensions
+4.3.2 Utilisation des dimensions dans le cube SSAS
+La capture suivante illustre la mani`ere dont les dimensions ont ´et´e associ´ees aux groupes
+de mesures dans notre cube SSAS, via l’onglet ≪ Dimension Usage ≫ :
+— Chaque dimension (Dim Caracteristiques, Dim Date, Dim Metadonnees, Dim Modele,
+Dim Benchmark) est reli´ee `a chacune des tables de faits (Fact ModeleAggregate et
+Fact ResultatsBenchmark) grˆace `a leur cl´e substitutive (SK).
+— Cette liaison permet d’effectuer des analyses crois´ees entre les mesures et les diff´erentes
+dimensions, facilitant l’exploration multidimensionnelle des donn´ees.
+— L’interface permet de visualiser rapidement le sch´ema d’association, garantissant
+que toutes les dimensions sont correctement exploit´ees dans le cube pour les deux
+groupes de mesures.
+— Une configuration correcte `a ce niveau est essentielle pour assurer la coh´erence et la
+richesse des analyses r´ealis´ees `a partir du cube.
+20
+Figure 12 – Association des dimensions aux groupes de mesures dans le cube SSAS
+4.3.3 Exploration et interrogation du cube via SSMS
+La figure suivante illustre l’utilisation de SQL Server Management Studio (SSMS) pour
+interroger le cube OLAP, permettant d’explorer les diff´erentes mesures et dimensions de
+mani`ere interactive :
+— SSMS permet de se connecter directement au cube d´eploy´e sur le serveur Analysis
+Services.
+— L’interface offre la possibilit´e de composer des requˆetes multidimensionnelles (MDX)
+ou d’explorer les donn´ees de fa¸con graphique.
+— On peut s´electionner les diff´erents axes d’analyse (mesures, dimensions, hi´erarchies
+temporelles, etc.) pour obtenir des aggregations ou des d´etails selon les besoins
+m´etiers.
+— Cette exploration valide la bonne structuration du cube et la pr´esence des donn´ees
+attendues, tout en facilitant la pr´eparation de rapports ou tableaux de bord.
+— L’utilisation de SSMS pour cette ´etape est essentielle pour v´erifier l’int´egrit´e et la
+richesse analytique du cube avant sa mise `a disposition des utilisateurs finaux.
+Figure 13 – Exploration et interrogation du cube OLAP via SQL Server Management
+Studio (SSMS)
+21
+5 Visualisation des donn´ees avec Power BI et SSAS
+5.1 Connexion de Power BI au cube SSAS
+Figure 14 – chargement du cube via Power BI
+5.2 Exploration et cr´eation de rapports dynamiques
+Figure 15 – Suite chargement du cube via
+5.3 Exemples de visualisations r´ealis´ees
+La figure ci-dessous pr´esente un tableau de bord interactif construit avec Power BI,
+permettant de visualiser et d’analyser les principaux indicateurs cl´es de performance
+(KPI) extraits des mod`eles de langage ´etudi´es.
+22
+Figure 16 – Exemple de dashboard Power BI pour l’analyse des mod`eles de langage
+5.3.1 Pr´esentation et explication des KPI
+Les principaux KPI repr´esent´es dans ce tableau de bord sont :
+— Nombre total de mod`eles : Il s’agit du nombre total de mod`eles de langage
+analys´es dans l’´etude.
+— Score moyen global : Moyenne agr´eg´ee des scores de performance obtenus par
+l’ensemble des mod`eles sur diff´erents benchmarks.
+— Nombre moyen de param`etres (en milliards) : Taille moyenne des mod`eles,
+exprim´ee en nombre de param`etres (en milliards).
+— Coˆut CO2 moyen : Estimation de l’empreinte carbone moyenne g´en´er´ee lors de
+l’entraˆınement ou de l’utilisation des mod`eles.
+— Score moyen global par type de mod`ele : Visualisation de la performance
+moyenne selon les diff´erentes cat´egories de mod`eles (multimodal, chatmodels, finetuned, etc.).
+— Coˆut CO2 moyen par architecture de mod`ele : Comparaison de l’empreinte
+carbone moyenne en fonction de l’architecture des mod`eles.
+— Distribution selon la pr´ecision du mod`ele : R´epartition des mod`eles selon la
+pr´ecision num´erique utilis´ee (4bit, bfloat16, float16, etc.).
+— Classement des meilleurs mod`eles : Tableau affichant les mod`eles ayant obtenu
+les meilleures performances globales.
+— Meilleur mod`ele par benchmark : Identification du mod`ele le plus performant
+pour chaque benchmark sp´ecifique.
+5.3.2 Analyse et interpr´etation des KPI
+L’analyse des diff´erents KPI met en ´evidence plusieurs constats importants :
+23
+— Les mod`eles multimodaux et base/merges affichent les scores moyens globaux les
+plus ´elev´es, sugg´erant une meilleure polyvalence et capacit´e d’adaptation.
+— Certains types d’architectures, comme Qwen2ForSequenceClassification, pr´esentent
+un coˆut CO2 moyen significativement sup´erieur, ce qui peut influencer les choix en
+mati`ere de d´eveloppement durable.
+— La taille moyenne des mod`eles (environ 11 milliards de param`etres) t´emoigne de la
+complexit´e croissante des approches actuelles en NLP.
+— La r´epartition des mod`eles selon la pr´ecision num´erique montre une adoption croissante des formats optimis´es, comme le 4bit ou le float16, pour r´eduire l’impact
+environnemental sans compromis majeur sur la performance.
+— Le classement des meilleurs mod`eles et l’identification des leaders par benchmark
+facilitent le rep´erage rapide des solutions les plus performantes selon chaque cas
+d’usage.
+5.3.3 Pertinence des KPI pour la prise de d´ecision
+La s´election et la visualisation de ces KPI offrent une v´eritable aide `a la d´ecision :
+— Ils permettent de comparer rapidement les mod`eles selon plusieurs crit`eres essentiels
+(performance, taille, coˆut environnemental).
+— Les tableaux et graphiques facilitent l’identification des compromis `a faire entre
+performance et soutenabilit´e.
+— L’analyse d´etaill´ee par type et architecture de mod`ele oriente les choix techniques
+selon les priorit´es du projet (efficacit´e, ´ecologie, robustesse. . .).
+— Enfin, ce type de reporting favorise une d´emarche de benchmark continu, indispensable dans un domaine en constante ´evolution comme le NLP.
+6 Conclusion g´en´erale
+Ce projet a permis d’explorer l’ensemble du cycle de vie d’une solution d´ecisionnelle
+moderne appliqu´ee `a l’analyse des mod`eles de langage. Nous avons con¸cu et aliment´e
+un entrepˆot de donn´ees, mod´elis´e un cube OLAP avec SSAS, et mis en place des outils performants de reporting et de visualisation (SSRS, Power BI). Chaque ´etape, de
+l’int´egration des donn´ees `a l’´elaboration de dashboards interactifs, a apport´e une meilleure
+compr´ehension des enjeux li´es `a la valorisation des donn´ees issues de benchmarks de
+mod`eles de langage.
+L’utilisation des technologies Microsoft (SQL Server, SSAS, SSRS, Power BI) a d´emontr´e
+la puissance et la compl´ementarit´e de ces outils pour r´epondre `a des besoins analytiques
+complexes, tout en assurant la flexibilit´e n´ecessaire `a l’exploration et `a la restitution des
+r´esultats. Ce travail s’est appuy´e sur des donn´ees r´eelles issues de benchmarks publics,
+ce qui a permis de confronter les aspects th´eoriques `a des cas d’usage concrets.
+Enfin, la r´ealisation de ce projet a aussi ´et´e l’occasion de mettre en pratique les connaissances acquises lors des trois laboratoires propos´es par notre professeur, couvrant respectivement la mod´elisation de l’entrepˆot de donn´ees, la conception du cube OLAP, et la
+g´en´eration de rapports avanc´es.
+24
+R´ef´erences bibliographiques
+— Source des donn´ees de benchmarks : https ://github.com/fboulnois/llm-leaderboardcsv/blob/main/csv/huggingfacev2.csv
+— Laboratoire 1 : Mod´elisation et alimentation de l’entrepˆot de donn´ees (propos´e par
+notre professeur)
+— Laboratoire 2 : Cr´eation et exploration d’un cube OLAP SSAS (propos´e par notre
+professeur)
+— Laboratoire 3 : Reporting avanc´e avec SSRS et Power BI (propos´e par notre professeur)
+25
