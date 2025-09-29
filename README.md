@@ -225,3 +225,61 @@ The figure below shows the use of SQL Server Management Studio (SSMS) to query a
 
 ![OLAP Cube Exploration in SSMS](images/SSMS_CubeExploration.png)
 
+## 10. Power BI Reports & KPIs
+
+### 10.1 Connecting Power BI to the SSAS Cube
+
+Power BI was connected directly to the SSAS cube to enable dynamic reporting and interactive data exploration.
+
+![Power BI Cube Loading](images/PowerBI_CubeLoading.png)
+
+### 10.2 Exploration and Creation of Dynamic Reports
+
+Once the cube was loaded, Power BI enabled the creation of dynamic reports and dashboards, allowing users to analyze model performance and characteristics across multiple dimensions.
+
+![Power BI Report Creation](images/PowerBI_ReportCreation.png)
+
+### 10.3 Examples of Visualizations
+
+The figure below presents an interactive dashboard built with Power BI, used to visualize and analyze key performance indicators (KPIs) for the studied language models.
+
+![Power BI Dashboard Example](images/PowerBI_Dashboard.png)
+
+#### 10.3.1 KPI Presentation and Explanation
+
+Main KPIs represented in the dashboard include:
+- **Total number of models:** The total count of language models analyzed.
+- **Global average score:** Aggregated average performance scores across all models and benchmarks.
+- **Average number of parameters (in billions):** Average model size, expressed in billions of parameters.
+- **Average CO2 cost:** Estimated average carbon footprint generated during model training or usage.
+- **Global average score by model type:** Performance visualization by model category (multimodal, chatmodels, fine-tuned, etc.).
+- **Average CO2 cost by model architecture:** Comparison of average carbon footprint by model architecture.
+- **Distribution by model precision:** Breakdown of models by numeric precision (4bit, bfloat16, float16, etc.).
+- **Top-performing models ranking:** Table showing models with the highest overall performance.
+- **Best model per benchmark:** Identification of the top-performing model for each specific benchmark.
+
+#### 10.3.2 KPI Analysis and Interpretation
+
+Analysis of these KPIs highlights several important findings:
+- Multimodal and base/merge models show the highest global average scores, indicating better versatility and adaptability.
+- Certain architectures, such as Qwen2ForSequenceClassification, have significantly higher average CO2 costs, impacting sustainability choices.
+- The average model size (about 11 billion parameters) reflects the growing complexity of current NLP approaches.
+- The distribution by numeric precision shows increasing adoption of optimized formats (e.g., 4bit, float16) to reduce environmental impact without major performance loss.
+- Ranking and identification of top models per benchmark facilitate quick recognition of the best solutions for each use case.
+
+#### 10.3.3 KPI Relevance for Decision-Making
+
+Selecting and visualizing these KPIs provides real decision support:
+- Enables rapid comparison of models across essential criteria (performance, size, environmental cost).
+- Tables and charts help identify trade-offs between performance and sustainability.
+- Detailed analysis by model type and architecture guides technical choices according to project priorities (efficiency, ecology, robustness, etc.).
+- This type of reporting supports continuous benchmarking, which is crucial in the fast-evolving NLP field.
+
+## 11. Conclusion
+
+This project explored the full lifecycle of a modern decision-support solution applied to language model analysis. We designed and populated a data warehouse, modeled an OLAP cube with SSAS, and implemented advanced reporting and visualization tools (SSRS, Power BI). Each step, from data integration to interactive dashboard creation, enhanced understanding of the challenges in leveraging benchmark data from language models.
+
+The use of Microsoft technologies (SQL Server, SSAS, SSRS, Power BI) demonstrated the power and complementarity of these tools for meeting complex analytical needs, while ensuring the flexibility required for data exploration and result presentation. The work was based on real data from public benchmarks, bridging theory with practical use cases.
+
+Finally, this project provided an opportunity to apply knowledge gained from three labs led by our professor, covering data warehouse modeling, OLAP cube design, and advanced report generation.
+
