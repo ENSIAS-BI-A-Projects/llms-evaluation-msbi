@@ -80,7 +80,7 @@ The granularity matrix defines the intersection of dimensions and measures, spec
 
 ### Granularity Matrix
 
-![Granularity Matrix](images/Matrice_de_granularité.png)
+![Granularity Matrix](images/Matrice.png)
 
 
 
