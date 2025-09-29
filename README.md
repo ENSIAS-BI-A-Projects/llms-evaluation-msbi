@@ -293,3 +293,8 @@ The use of Microsoft technologies (SQL Server, SSAS, SSRS, Power BI) demonstrate
 
 Finally, this project provided an opportunity to apply knowledge gained from three labs led by our professor, covering data warehouse modeling, OLAP cube design, and advanced report generation.
 
+## 12. Video
+
+Watch a demonstration of the project execution here:  
+[![Project Demo](https://img.youtube.com/vi/ID_DE_LA_VIDEO/0.jpg)](https://youtu.be/wCcfFZiHByM)
+
