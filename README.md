@@ -117,8 +117,6 @@ After cleaning, the Excel file was imported into a relational database named **L
 - The import was performed using the **Import Flat File** wizard, loading data into a table named `source`.
 - The source table serves as a staging area prior to integration and transformation into the final Data Warehouse.
 
-![Imported Data in Staging Table](images/ImportedData_Staging.png)
-
 ### 8.3 SSIS ETL Implementation
 
 #### 8.3.1 Connection Manager
@@ -180,4 +178,50 @@ During the configuration of the Slowly Changing Dimension (SCD) Type 2 component
 - To meet project deadlines, this step was temporarily set aside, and work continued with fact table loading and cube creation.
 
 ![SCD2 Configuration Issue](images/SCD2_ConfigurationIssue.png)
+
+## 9. OLAP Cube (SSAS)
+
+The following figure presents the structure of our SSAS (SQL Server Analysis Services) cube, designed to enable multidimensional analysis of LLM results and characteristics.
+
+### Cube Structure
+
+- **Fact Tables:**
+  - **Fact ModeleAggregate:** Aggregates measures by model, such as average score, parameter count, cost, etc.
+  - **Fact ResultatsBenchmark:** Contains detailed benchmark results for each model and test run.
+
+- **Dimensions:**
+  - **Dim Modele**
+  - **Dim Caracteristiques**
+  - **Dim Metadonnees**
+  - **Dim Date**
+  - **Dim Benchmark**
+
+- Relationships between fact tables and dimensions are established using surrogate keys (SK), ensuring referential integrity and consistency during data exploration.
+
+- This star schema structure facilitates the creation of indicators, reports, dashboards, and enables cross-dimensional analysis.
+
+![SSAS Cube Structure](images/SSAS_CubeStructure.png)
+
+### Dimension Usage in the Cube
+
+The screenshot below illustrates how dimensions are associated with measure groups in our SSAS cube via the "Dimension Usage" tab:
+
+- Each dimension (Dim Caracteristiques, Dim Date, Dim Metadonnees, Dim Modele, Dim Benchmark) is linked to both fact tables (Fact ModeleAggregate and Fact ResultatsBenchmark) through their surrogate keys.
+- This linkage enables cross-analysis between measures and dimensions, supporting flexible multidimensional exploration.
+- The interface provides a clear view of associations, ensuring all dimensions are properly utilized in the cube for both measure groups.
+- Correct configuration at this stage is essential for coherent and rich analyses from the cube.
+
+![Dimension Usage in SSAS Cube](images/SSAS_DimensionUsage.png)
+
+### Cube Exploration via SSMS
+
+The figure below shows the use of SQL Server Management Studio (SSMS) to query and explore the OLAP cube:
+
+- SSMS allows direct connection to the deployed cube on the Analysis Services server.
+- The interface supports composing multidimensional queries (MDX) or graphical data exploration.
+- Users can select different analysis axes (measures, dimensions, temporal hierarchies, etc.) to obtain aggregations or details as needed.
+- This exploration validates the cube’s structure and data presence, facilitating report and dashboard preparation.
+- Using SSMS at this stage is essential to verify the integrity and analytical richness of the cube before making it available to end users.
+
+![OLAP Cube Exploration in SSMS](images/SSMS_CubeExploration.png)
 
