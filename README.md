@@ -78,7 +78,18 @@ The granularity matrix defines the intersection of dimensions and measures, spec
 - **Fact ResultatsBenchmark:** Detailed results per model, per benchmark, per date, with associated technical characteristics and metadata.
 - **Fact ModeleAggregate:** Aggregated measures per model, such as average scores, popularity, and environmental cost.
 
-The star schema and granularity matrix were visualized and documented (see `images/shemaetoile.png` and `images/Matrice_de_granularité.png`).
+### Granularity Matrix
+
+![Granularity Matrix](images/Matrice_de_granularité.png)
+
+
+
+### Star Schema
+
+![Star Schema](images/shemaetoile.png)
+
+
+
 
 This modeling phase established a robust foundation for the subsequent ETL implementation and analytical workflows.
 
