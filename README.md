@@ -296,5 +296,5 @@ Finally, this project provided an opportunity to apply knowledge gained from thr
 ## 12. Video
 
 Watch a demonstration of the project execution here:  
-[![Project Demo](https://img.youtube.com/vi/ID_DE_LA_VIDEO/0.jpg)](https://youtu.be/wCcfFZiHByM)
+[![Project Demo](images/video.jpg)](https://www.youtube.com/watch?v=wCcfFZiHByM)
 
