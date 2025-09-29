@@ -48,6 +48,16 @@ The architecture consists of several integrated components:
  - Power BI connects to the OLAP cubes for dynamic reporting and visualization.
 This pipeline ensures data quality, integrity, and supports advanced analytics and decision-making.
 
+## Data Sources
+
+The benchmark data used in this project was obtained from the official EvalLLM leaderboard and its associated CSV file:
+
+- [CSV file of LLM models and evaluation results](https://github.com/fboulnois/llm-leaderboard-csv/blob/main/csv/huggingface_v2.csv)
+- [Huggingface Open LLM Leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard#/)
+
+These sources provide detailed information on LLM models, their evaluation results, environmental impact, and more.
+
+
 ## 7. Data Warehouse Modeling & Granularity Matrix
 
 Before implementing the ETL process, a thorough modeling phase was conducted to define the structure and analytical capabilities of the Data Warehouse. This phase involved identifying key facts (measures) and analytical dimensions, which form the foundation for multidimensional analysis.
