@@ -243,7 +243,7 @@ Once the cube was loaded, Power BI enabled the creation of dynamic reports and d
 
 The figure below presents an interactive dashboard built with Power BI, used to visualize and analyze key performance indicators (KPIs) for the studied language models.
 
-![Power BI Dashboard Example](images/Dashboard.png)
+![Power BI Dashboard Example](images/Dashboard.jpg)
 
 #### 10.3.1 KPI Presentation and Explanation
 
