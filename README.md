@@ -94,26 +94,90 @@ The granularity matrix defines the intersection of dimensions and measures, spec
 This modeling phase established a robust foundation for the subsequent ETL implementation and analytical workflows.
 
 ## 8. ETL Process (SSIS)
-The ETL process is implemented using SSIS to automate data integration and transformation. Key steps include:
-- Data cleaning and preparation using Python (pandas) before loading into SQL Server.
-- Importing cleaned data into a staging area for initial validation.
-- SSIS workflows extract, transform, and load data into dimension and fact tables, ensuring referential integrity.
-- Lookup operations link facts to dimensions, and aggregations are performed for summary tables.
-- Special handling for slowly changing dimensions (SCD) to track historical changes.
-This robust ETL pipeline ensures high data quality, consistency, and supports efficient updates and analysis.
 
-## 9. OLAP Cube (SSAS)
-The OLAP cube is built using SSAS and integrates data from the Data Warehouse for advanced multidimensional analysis. The cube includes:
-- Dimensions: Model, Benchmark, Date, Characteristics, Metadata
-- Measures: Raw benchmark scores, normalized scores, average model scores, popularity (hearts), environmental cost, and model size
-This structure enables users to perform cross-dimensional analysis, compare model performance over time, and generate aggregated KPIs for decision-making. The cube supports flexible slicing, dicing, and drill-down operations for in-depth insights.
+### 8.1 Preparation and Import of Source Files
 
-## 10. Power BI Reports & KPIs
-Power BI is used to create interactive dashboards and reports based on data from the SSAS OLAP cube. Key features include:
-- Dynamic visualizations for comparing model performance across benchmarks, generations, and other dimensions
-- Calculation and display of KPIs such as average scores, normalized scores, popularity, and environmental impact
-- Drill-down and filtering capabilities for detailed analysis
-These dashboards help users interpret results, identify top-performing models, and support data-driven decision-making.
+Before integration into the decision system, a crucial data preparation and cleaning phase was performed using the pandas library in Python. The goal was to ensure data quality, consistency, and compatibility with the requirements of a data warehouse.
 
-## 11. Video
+Main transformations included:
+- **Format change:** The source file, initially in CSV format, was converted to Excel (XLSX) for better structure and visualization.
+- **Data type corrections:** Automatic conversion of numeric values (scores, costs, etc.), boolean fields (TRUE/FALSE), and date fields to appropriate types.
+- **Text value cleaning:** Removal of extra spaces, quotes, or unwanted characters to ensure clean strings.
+- **Advanced handling of missing values:** Replacement of missing identifiers or categories with "Unknown" or the most frequent value, imputation of missing numeric values with the column median, and replacement of missing dates with `1970-01-01`.
+- **Data structure and quality treatment:** Removal of rows with more than 50% missing values, standardization and normalization for consistency.
+- **Data warehouse compatibility:** The final dataset is clean, typed, consistent, and ready for loading into the warehouse.
+
+This preparation ensures that future analyses are based on reliable and usable data.
+
+### 8.2 Creation of the Source Database in SQL Server
+
+After cleaning, the Excel file was imported into a relational database named **LLM Staging** in SQL Server.
+
+- Column types were carefully checked and adapted to match the cleaned source data.
+- The import was performed using the **Import Flat File** wizard, loading data into a table named `source`.
+- The source table serves as a staging area prior to integration and transformation into the final Data Warehouse.
+
+![Imported Data in Staging Table](images/ImportedData_Staging.png)
+
+### 8.3 SSIS ETL Implementation
+
+#### 8.3.1 Connection Manager
+
+The first step in configuring an SSIS project is to define Connection Managers, which act as gateways between data sources and destinations.
+
+- Two connectors were created:
+  - `localhost.LLM Staging`: connects to the source database with raw data from staging.
+  - `localhost.LLMs DW`: connects to the target Data Warehouse.
+- These connectors allow each SSIS component (Source, Destination, Lookup, etc.) to access the relevant tables for extraction or loading.
+- This step ensures communication between SSIS and the SQL Server databases used throughout the ETL process.
+
+![SSIS Connection Managers](images/SSIS_ConnectionManagers.png)
+
+#### 8.3.2 Control Flow Overview
+
+The diagram below illustrates the main Control Flow in SSIS for populating the EvalLLM Data Warehouse. Each task corresponds to loading a dimension or fact table, following the previously defined star schema.
+
+- **Model, Characteristics, Metadata, Date, Benchmark:** Data Flow tasks for loading respective dimensions from the staging table.
+- **LoadFactResultatBenchmark:** Integrates detailed performance facts (by benchmark) into the `Fact ResultatsBenchmark` table, performing necessary joins with loaded dimensions.
+- **Fact ModeleAggregate:** Loads aggregated measures per model into the dedicated fact table, using dimensions and performing required aggregations.
+
+The architecture ensures each dimension is populated before loading fact tables, maintaining foreign key relationships and referential integrity. This sequencing enables a robust, automated ETL process tailored to the project's star schema.
+
+![SSIS Control Flow Overview](images/SSIS_ControlFlow.png)
+
+#### 8.3.3 Data Flow Details
+
+Each data flow (Data Flow) is detailed individually. For each dimension or fact table, a specific Data Flow was designed for mapping, transformation, and appropriate loading from staging to the Data Warehouse.
+
+- **Dimension Example (Dim Modele):**
+  - Configures the OLE DB destination in SSIS for loading transformed data into the `Dim Modele` table.
+  - Specifies the target database connection, access mode, and destination table name.
+  - Defines column mappings between input and destination columns, ensuring integrity and consistency.
+
+![OLE DB Destination Configuration](images/OLEDB_Destination_DimModele.png)
+![Column Mapping Dim Modele](images/ColumnMapping_DimModele.png)
+
+- **Fact Table Example (Fact ResultatsBenchmark):**
+  - Data flow starts with an OLE DB source extracting data from staging.
+  - Multiple Lookup components retrieve surrogate keys for dimensions (Benchmark, Model, Date, Metadata, Characteristics) via joins.
+  - Keys are added to the main data flow, ensuring correct linkage between facts and dimensions.
+  - Enriched data is loaded into the fact table, ensuring referential integrity.
+
+![Fact ResultatsBenchmark Data Flow](images/DataFlow_FactResultatsBenchmark.png)
+
+- **Fact Table Example (Fact ModeleAggregate):**
+  - After extracting source data via OLE DB Source, Lookup components retrieve dimension identifiers (Date, Characteristics, Metadata, Model).
+  - Each lookup links facts to surrogate keys of corresponding dimensions.
+  - Enriched data is loaded into the OLE DB destination, completing the process for this table.
+
+![Fact ModeleAggregate Data Flow](images/DataFlow_FactModeleAggregate.png)
+
+#### 8.3.4 SCD2 Configuration Issue
+
+During the configuration of the Slowly Changing Dimension (SCD) Type 2 component in SSIS, a blocking issue was encountered. Specifically, the dropdown list for selecting the validity date variable was empty.
+
+- Multiple attempts were made to restart the SSIS wizard and the application.
+- To meet project deadlines, this step was temporarily set aside, and work continued with fact table loading and cube creation.
+
+![SCD2 Configuration Issue](images/SCD2_ConfigurationIssue.png)
 
